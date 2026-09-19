@@ -7,7 +7,7 @@ st.set_page_config(page_title="Orçamento & Finanças - Lucas Galvão", page_ico
 
 st.title("💎 Gestão Financeira Inteligente - Lucas Galvão")
 
-# --- BANCO DE DADOS DE MESES (INICIALIZAÇÃO) ---
+# --- BANCO DE DADOS DE MESES (INICIALIZAÇÃO COM DADOS DA SUA PLANILHA) ---
 if 'historico_meses' not in st.session_state:
     st.session_state.historico_meses = {
         "Junho / 2026": {
@@ -101,8 +101,8 @@ tab_dash, tab_contas, tab_rem, tab_tickets, tab_analytics = st.tabs([
 
 # --- DADOS COMPARTILHADOS ---
 df_contas = pd.DataFrame(dados_mes["contas"])
-total_pago = df_contas['Valor Pago'].sum()
-total_faturas = df_contas['Fatura'].sum()
+total_pago = df_contas['Valor Pago'].sum() if 'Valor Pago' in df_contas.columns else 0.0
+total_faturas = df_contas['Fatura'].sum() if 'Fatura' in df_contas.columns else 0.0
 
 rem = dados_mes["rem"]
 salario_bruto = rem["q1"] + rem["q2"] + rem["he"] + rem["not"] + rem["dsr_not"] + rem["dsr_var"]
@@ -143,9 +143,10 @@ with tab_dash:
     col_g1, col_g2 = st.columns(2)
     with col_g1:
         st.markdown("**Status das Contas**")
-        status_counts = df_contas['Status'].value_counts().reset_index()
-        fig_status = px.pie(status_counts, values='count', names='Status', hole=0.5)
-        st.plotly_chart(fig_status, use_container_width=True)
+        status_counts = df_contas['Status'].value_counts().reset_index() if 'Status' in df_contas.columns else pd.DataFrame()
+        if not status_counts.empty:
+            fig_status = px.pie(status_counts, values='count', names='Status', hole=0.5)
+            st.plotly_chart(fig_status, use_container_width=True)
 
     with col_g2:
         st.markdown("**Balanço do Mês**")
@@ -156,12 +157,14 @@ with tab_dash:
         fig_bar = px.bar(df_balanco, x="Categoria", y="Valor", text_auto='.2f', color="Categoria")
         st.plotly_chart(fig_bar, use_container_width=True)
 
-# --- TAB 2: CONTAS E EXTRATOS SUSPENSOS (CORRIGIDO BUG DO ENTER) ---
+# --- TAB 2: CONTAS E EXTRATOS SUSPENSOS (SISTEMA ANTI-ARRASTO FIX) ---
 with tab_contas:
     st.subheader(f"💳 Tabela de Faturas - {mes_selecionado}")
     
-    # Criamos um DataFrame estável direto do estado para edição
-    df_editor = pd.DataFrame(dados_mes["contas"])
+    df_editor = pd.DataFrame(st.session_state.historico_meses[mes_selecionado]["contas"])
+    
+    # Callback para capturar edições manuais e arrastos em massa
+    editor_key = f"editor_v3_{mes_selecionado}"
     
     edited_df = st.data_editor(
         df_editor,
@@ -175,11 +178,15 @@ with tab_contas:
             "Extrato": None
         },
         use_container_width=True,
-        key=f"editor_v2_{mes_selecionado}"
+        key=editor_key
     )
     
-    # Atualiza instantaneamente a fonte da sessão para impedir reversão no Enter
-    st.session_state.historico_meses[mes_selecionado]["contas"] = edited_df.to_dict('records')
+    # Processa alterações de arrasto / substituição de dados imediatamente
+    if editor_key in st.session_state and "edited_rows" in st.session_state[editor_key]:
+        changes = st.session_state[editor_key]["edited_rows"]
+        for row_idx, row_changes in changes.items():
+            for col_name, new_val in row_changes.items():
+                st.session_state.historico_meses[mes_selecionado]["contas"][int(row_idx)][col_name] = new_val
 
     st.markdown(f"**Total Mês Faturado:** `R$ {edited_df['Fatura'].sum():,.2f}` | **Total Efectivamente Pago:** `R$ {edited_df['Valor Pago'].sum():,.2f}`")
 
@@ -265,7 +272,7 @@ with tab_analytics:
         resumo_historico.append({
             "Mês": m,
             "Salário Líquido": sl,
-            "Total Faturas": df_temp['Fatura'].sum(),
+            "Total Faturas": df_temp['Fatura'].sum() if 'Fatura' in df_temp.columns else 0.0,
             "Emergência": r_temp.get("emergencia", 0.00)
         })
     
