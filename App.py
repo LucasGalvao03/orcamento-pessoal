@@ -13,7 +13,7 @@ ARQUIVO_DADOS = "dados_orcamento.json"
 
 # --- DADOS DE ESTRUTURA INICIAL DE BACKUP ---
 DADOS_INICIAIS = {
-    "JUNHO - 2026": {
+    "SETEMBRO - 2026": {
         "contas": [
             {"Conta": "BANCO DO BRASIL (CARD)", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": "Sem compras no mês"},
             {"Conta": "BANCO DO BRASIL (CS)", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": ""},
