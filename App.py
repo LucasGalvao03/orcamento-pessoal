@@ -7,7 +7,7 @@ st.set_page_config(page_title="Orçamento & Finanças - Lucas Galvão", page_ico
 
 st.title("💎 Gestão Financeira Inteligente - Lucas Galvão")
 
-# --- BANCO DE DADOS DE MESES (INICIALIZAÇÃO COM DADOS DA SUA PLANILHA) ---
+# --- BANCO DE DADOS DE MESES (INICIALIZAÇÃO COM DADOS DA TUA PLANILHA) ---
 if 'historico_meses' not in st.session_state:
     st.session_state.historico_meses = {
         "Junho / 2026": {
@@ -29,9 +29,22 @@ if 'historico_meses' not in st.session_state:
                 {"Conta": "EMPRESTIMO ITAU", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": ""},
                 {"Conta": "FINANCIAMENTO IMOBILIARIA", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": ""},
             ],
-            "rem": {"q1": 1000.0, "q2": 1500.0, "he": 403.86, "not": 137.73, "dsr_not": 27.55, "dsr_var": 80.77, "inss": 266.57, "ad": 1000.0},
+            "rem": {"q1": 1000.0, "q2": 1500.0, "he": 403.86, "not": 137.73, "dsr_not": 27.55, "dsr_var": 80.77, "inss": 266.57, "ad": 1000.0, "emergencia": 0.00},
             "tk": {"sal_a_ant": 17.49, "sal_a_at": 955.0, "mateus": 855.0, "ideal": 117.49, "outros_a": 0.0,
                    "sal_m_ant": 8.95, "sal_m_at": 600.0, "uber": 160.47, "gas_m": 145.18, "gas_c": 300.0}
+        },
+        "Julho / 2026": {
+            "contas": [
+                {"Conta": "ITAU (CARD)", "Fatura": 180.66, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/07/2026", "Extrato": ""},
+                {"Conta": "NUBANK (CARD)", "Fatura": 1202.49, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/07/2026", "Extrato": ""},
+                {"Conta": "HONDA CONSORCIO", "Fatura": 659.68, "Valor Pago": 0.00, "Status": "PAGO", "Data": "15/07/2026", "Extrato": ""},
+                {"Conta": "99 PAY (CS)", "Fatura": 955.35, "Valor Pago": 0.00, "Status": "PAGO", "Data": "15/07/2026", "Extrato": ""},
+                {"Conta": "FACULDADE", "Fatura": 204.83, "Valor Pago": 0.00, "Status": "PAGO", "Data": "15/07/2026", "Extrato": ""},
+                {"Conta": "RASTREADOR", "Fatura": 104.90, "Valor Pago": 0.00, "Status": "PAGO", "Data": "15/07/2026", "Extrato": ""},
+            ],
+            "rem": {"q1": 1000.0, "q2": 4068.81, "he": 157.70, "not": 101.03, "dsr_not": 19.43, "dsr_var": 556.98, "inss": 1224.10, "ad": 1000.0, "emergencia": 1055.00},
+            "tk": {"sal_a_ant": 0.0, "sal_a_at": 955.0, "mateus": 0.0, "ideal": 0.0, "outros_a": 0.0,
+                   "sal_m_ant": 0.0, "sal_m_at": 600.0, "uber": 0.0, "gas_m": 0.0, "gas_c": 0.0}
         },
         "Agosto / 2026": {
             "contas": [
@@ -42,7 +55,7 @@ if 'historico_meses' not in st.session_state:
                 {"Conta": "FINANCIAMENTO CAIXA", "Fatura": 450.00, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/08/2026", "Extrato": "• Parcela Habitação (1/360)"},
                 {"Conta": "EMPRESTIMO ITAU", "Fatura": 333.00, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/08/2026", "Extrato": "• Empréstimo Pessoal (1/24)"},
             ],
-            "rem": {"q1": 1025.0, "q2": 1500.0, "he": 252.06, "not": 100.05, "dsr_not": 19.24, "dsr_var": 48.47, "inss": 246.46, "ad": 1025.0},
+            "rem": {"q1": 1025.0, "q2": 1500.0, "he": 252.06, "not": 100.05, "dsr_not": 19.24, "dsr_var": 48.47, "inss": 246.46, "ad": 1025.0, "emergencia": 0.00},
             "tk": {"sal_a_ant": 0.0, "sal_a_at": 955.0, "mateus": 0.0, "ideal": 0.0, "outros_a": 0.0,
                    "sal_m_ant": 0.0, "sal_m_at": 600.0, "uber": 0.0, "gas_m": 0.0, "gas_c": 0.0}
         },
@@ -57,7 +70,7 @@ if 'historico_meses' not in st.session_state:
                 {"Conta": "EMPRESTIMO ITAU", "Fatura": 233.00, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "XX/09/2026", "Extrato": "• Empréstimo Pessoal (2/24)"},
                 {"Conta": "FINANCIAMENTO IMOBILIARIA", "Fatura": 270.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/09/2026", "Extrato": "• Parcela Imobiliária (1/12)"},
             ],
-            "rem": {"q1": 1025.0, "q2": 1500.0, "he": 0.0, "not": 0.0, "dsr_not": 0.0, "dsr_var": 0.0, "inss": 0.0, "ad": 1025.0},
+            "rem": {"q1": 1025.0, "q2": 1500.0, "he": 0.0, "not": 0.0, "dsr_not": 0.0, "dsr_var": 0.0, "inss": 0.0, "ad": 1025.0, "emergencia": 0.00},
             "tk": {"sal_a_ant": 0.0, "sal_a_at": 955.0, "mateus": 0.0, "ideal": 0.0, "outros_a": 0.0,
                    "sal_m_ant": 0.0, "sal_m_at": 600.0, "uber": 0.0, "gas_m": 0.0, "gas_c": 0.0}
         }
@@ -95,6 +108,7 @@ rem = dados_mes["rem"]
 salario_bruto = rem["q1"] + rem["q2"] + rem["he"] + rem["not"] + rem["dsr_not"] + rem["dsr_var"]
 descontos = rem["inss"] + rem["ad"]
 salario_liquido = salario_bruto - descontos
+valor_emergencia = rem.get("emergencia", 0.00)
 
 saldo_mes = salario_liquido - (total_pago if total_pago > 0 else total_faturas)
 taxa_comprometimento = (total_faturas / salario_liquido * 100) if salario_liquido > 0 else 0
@@ -103,21 +117,24 @@ taxa_comprometimento = (total_faturas / salario_liquido * 100) if salario_liquid
 with tab_dash:
     st.subheader(f"⚡ Resumo Executivo - {mes_selecionado}")
     
-    c1, c2, c3, c4 = st.columns(4)
+    c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Salário Líquido", f"R$ {salario_liquido:,.2f}")
     c2.metric("Total Faturado", f"R$ {total_faturas:,.2f}")
     c3.metric("Saldo do Mês", f"R$ {saldo_mes:,.2f}", delta=f"{'-' if saldo_mes < 0 else '+'}{abs(saldo_mes):,.2f}")
+    c4.metric("🚨 Emergência", f"R$ {valor_emergencia:,.2f}")
     
     tk = dados_mes["tk"]
     tk_alim_saldo = (tk["sal_a_ant"] + tk["sal_a_at"]) - (tk["mateus"] + tk["ideal"] + tk["outros_a"])
     tk_mob_saldo = (tk["sal_m_ant"] + tk["sal_m_at"]) - (tk["uber"] + tk["gas_m"] + tk["gas_c"])
-    c4.metric("Recursos Totais (Salário + Tickets)", f"R$ {(salario_liquido + tk_alim_saldo + tk_mob_saldo):,.2f}")
+    
+    recursos_totais = salario_liquido + tk_alim_saldo + tk_mob_saldo + valor_emergencia
+    c5.metric("Recursos Totais (+ Emergência)", f"R$ {recursos_totais:,.2f}")
 
     st.divider()
 
     st.markdown("### 🚦 Saúde Financeira do Mês")
     if taxa_comprometimento > 85:
-        st.error(f"⚠️ **Atenção:** Despesas comprometendo **{taxa_comprometimento:.1f}%** da renda do mês!")
+        st.error(f"⚠️ **Atenção:** Despesas comprometendo **{taxa_comprometimento:.1f}%** da renda do mês! Fundo de emergência disponível: R$ {valor_emergencia:,.2f}")
     elif taxa_comprometimento > 70:
         st.warning(f"⚡ **Aviso:** Comprometimento em **{taxa_comprometimento:.1f}%**.")
     else:
@@ -133,8 +150,8 @@ with tab_dash:
     with col_g2:
         st.markdown("**Balanço do Mês**")
         df_balanco = pd.DataFrame({
-            "Categoria": ["Salário Líquido", "Total Faturas", "Saldo Restante"],
-            "Valor": [salario_liquido, total_faturas, max(saldo_mes, 0)]
+            "Categoria": ["Salário Líquido", "Total Faturas", "Saldo Restante", "Reserva Emergência"],
+            "Valor": [salario_liquido, total_faturas, max(saldo_mes, 0), valor_emergencia]
         })
         fig_bar = px.bar(df_balanco, x="Categoria", y="Valor", text_auto='.2f', color="Categoria")
         st.plotly_chart(fig_bar, use_container_width=True)
@@ -143,7 +160,6 @@ with tab_dash:
 with tab_contas:
     st.subheader(f"💳 Tabela de Faturas - {mes_selecionado}")
     
-    # Tabela principal limpa
     edited_df = st.data_editor(
         df_contas,
         num_rows="dynamic",
@@ -153,7 +169,7 @@ with tab_contas:
             "Valor Pago": st.column_config.NumberColumn("Valor Pago (R$)", format="R$ %.2f"),
             "Status": st.column_config.SelectboxColumn("Status", options=["PAGO", "PENDENTE", "ISENTO"]),
             "Data": st.column_config.TextColumn("Vencimento / Data"),
-            "Extrato": None # Oculta a coluna de extrato longo da tabela principal para não poluir
+            "Extrato": None
         },
         use_container_width=True,
         key=f"editor_limpo_{mes_selecionado}"
@@ -164,7 +180,6 @@ with tab_contas:
 
     st.divider()
 
-    # Seção de extrato suspenso por conta
     st.subheader("🔍 Discriminação & Extrato Detalhado da Conta")
     st.caption("Selecione uma conta abaixo para visualizar ou preencher manualmente o extrato de compras e parcelas:")
 
@@ -183,9 +198,9 @@ with tab_contas:
                     )
                     item["Extrato"] = novo_extrato
 
-# --- TAB 3: REMUNERAÇÕES ---
+# --- TAB 3: REMUNERAÇÕES & EMERGÊNCIA ---
 with tab_rem:
-    st.subheader(f"💵 Folha de Pagamento - {mes_selecionado}")
+    st.subheader(f"💵 Folha de Pagamento & Emergência - {mes_selecionado}")
     col_g, col_d = st.columns(2)
     
     with col_g:
@@ -199,11 +214,15 @@ with tab_rem:
         st.info(f"**Salário Bruto:** R$ {salario_bruto:,.2f}")
 
     with col_d:
-        st.markdown("#### 📤 Descontos")
+        st.markdown("#### 📤 Descontos & Reserva de Emergência")
         rem["inss"] = st.number_input("INSS", value=float(rem["inss"]), key=f"inss_{mes_selecionado}")
         rem["ad"] = st.number_input("Adiantamento", value=float(rem["ad"]), key=f"ad_{mes_selecionado}")
         st.error(f"**Total Descontos:** R$ {descontos:,.2f}")
         st.success(f"**Salário Líquido:** R$ {salario_liquido:,.2f}")
+        
+        st.divider()
+        st.markdown("#### 🚨 Reserva de Emergência do Mês")
+        rem["emergencia"] = st.number_input("Saldo de Emergência (R$)", value=float(rem.get("emergencia", 0.00)), key=f"emg_{mes_selecionado}")
 
 # --- TAB 4: TICKETS ---
 with tab_tickets:
@@ -241,9 +260,10 @@ with tab_analytics:
         resumo_historico.append({
             "Mês": m,
             "Salário Líquido": sl,
-            "Total Faturas": df_temp['Fatura'].sum()
+            "Total Faturas": df_temp['Fatura'].sum(),
+            "Emergência": r_temp.get("emergencia", 0.00)
         })
     
     df_hist = pd.DataFrame(resumo_historico)
-    fig_comp = px.bar(df_hist, x="Mês", y=["Salário Líquido", "Total Faturas"], barmode="group")
+    fig_comp = px.bar(df_hist, x="Mês", y=["Salário Líquido", "Total Faturas", "Emergência"], barmode="group")
     st.plotly_chart(fig_comp, use_container_width=True)
