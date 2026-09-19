@@ -36,7 +36,7 @@ DADOS_INICIAIS = {
         "tk": {"sal_a_ant": 17.49, "sal_a_at": 955.0, "mateus": 855.0, "ideal": 117.49, "outros_a": 0.0,
                "sal_m_ant": 8.95, "sal_m_at": 600.0, "uber": 160.47, "gas_m": 145.18, "gas_c": 300.0}
     },
-    "JULHO - 2026": {
+    "SETEMBRO - 2026": {
         "contas": [
             {"Conta": "ITAU (CARD)", "Fatura": 180.66, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/07/2026", "Extrato": ""},
             {"Conta": "NUBANK (CARD)", "Fatura": 1202.49, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/07/2026", "Extrato": ""},
@@ -49,7 +49,7 @@ DADOS_INICIAIS = {
         "tk": {"sal_a_ant": 0.0, "sal_a_at": 955.0, "mateus": 0.0, "ideal": 0.0, "outros_a": 0.0,
                "sal_m_ant": 0.0, "sal_m_at": 600.0, "uber": 0.0, "gas_m": 0.0, "gas_c": 0.0}
     },
-    "AGOSTO - 2026": {
+    "SETEMBRO - 2026": {
         "contas": [
             {"Conta": "ITAU (CARD)", "Fatura": 438.00, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/08/2026", "Extrato": "• Compras de Agosto (2/3)"},
             {"Conta": "NUBANK (CARD)", "Fatura": 1211.99, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/08/2026", "Extrato": "• Fatura do mês"},
