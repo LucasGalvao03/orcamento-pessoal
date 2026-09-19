@@ -1,30 +1,36 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from streamlit_gsheets import GSheetsConnection
+import json
 
 # Configuração da página
 st.set_page_config(page_title="Orçamento & Finanças - Lucas Galvão", page_icon="💎", layout="wide")
 
 st.title("💎 Gestão Financeira Inteligente - Lucas Galvão")
-st.caption("Conectado ao Google Sheets (ORÇAMENTO_MES_LUCAS)")
 
-# --- CONEXÃO COM O GOOGLE SHEETS ---
+# Tentar importar gspread para integração com Google Sheets
 try:
-    conn = st.connection("gsheets", type=GSheetsConnection)
-except Exception as e:
-    st.error("Erro ao conectar com o Google Sheets. Verifique a chave 'connections.gsheets' nas Secrets do Streamlit.")
+    import gspread
+    from google.oauth2.service_account import Credentials
+    HAS_GSPREAD = True
+except ImportError:
+    HAS_GSPREAD = False
 
-# --- CARREGAR DADOS DA PLANILHA ---
-@st.cache_data(ttl=5)
-def carregar_dados_sheets():
+# --- FUNÇÃO DE CONEXÃO COM GOOGLE SHEETS ---
+def obter_cliente_gspread():
+    if not HAS_GSPREAD:
+        return None
     try:
-        df = conn.read(ttl=5)
-        return df
-    except Exception:
-        return pd.DataFrame()
+        scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+        if "gcp_service_account" in st.secrets:
+            creds_dict = dict(st.secrets["gcp_service_account"])
+            credentials = Credentials.from_service_account_info(creds_dict, scopes=scope)
+            return gspread.authorize(credentials)
+    except Exception as e:
+        st.sidebar.warning(f"Aviso de conexão Google Sheets: {e}")
+    return None
 
-# Estrutura local em sessão sincronizada
+# --- BANCO DE DADOS EM SESSÃO ---
 if 'historico_meses' not in st.session_state:
     st.session_state.historico_meses = {
         "Junho / 2026": {
@@ -77,7 +83,7 @@ if 'historico_meses' not in st.session_state:
         }
     }
 
-# --- SELEÇÃO DE MÊS ---
+# --- BARRA LATERAL ---
 st.sidebar.header("📅 Navegação do Orçamento")
 mes_selecionado = st.sidebar.selectbox("Escolha o Mês:", list(st.session_state.historico_meses.keys()))
 
@@ -91,16 +97,6 @@ if st.sidebar.button("➕ Criar Novo Mês"):
         }
         st.sidebar.success(f"Mês '{novo_mes_nome}' criado com sucesso!")
         st.rerun()
-
-st.sidebar.divider()
-if st.sidebar.button("☁️ Sincronizar / Salvar no Google Sheets", type="primary"):
-    try:
-        # Exporta o resumo das contas diretamente para a planilha online
-        df_export = pd.DataFrame(st.session_state.historico_meses[mes_selecionado]["contas"])
-        conn.update(data=df_export)
-        st.sidebar.success("Planilha Google Sheets atualizada com sucesso!")
-    except Exception as err:
-        st.sidebar.error(f"Erro ao salvar no Google Sheets: {err}")
 
 st.caption(f"Exibindo dados referentes a: **{mes_selecionado}**")
 dados_mes = st.session_state.historico_meses[mes_selecionado]
@@ -145,7 +141,7 @@ with tab_dash:
 
     st.markdown("### 🚦 Saúde Financeira do Mês")
     if taxa_comprometimento > 85:
-        st.error(f"⚠️ **Atenção:** Despesas comprometendo **{taxa_comprometimento:.1f}%** da renda do mês! Reserva de emergência: R$ {valor_emergencia:,.2f}")
+        st.error(f"⚠️ **Atenção:** Despesas comprometendo **{taxa_comprometimento:.1f}%** da renda do mês!")
     elif taxa_comprometimento > 70:
         st.warning(f"⚡ **Aviso:** Comprometimento em **{taxa_comprometimento:.1f}%**.")
     else:
@@ -157,7 +153,7 @@ with tab_dash:
         status_counts = df_contas['Status'].value_counts().reset_index() if 'Status' in df_contas.columns else pd.DataFrame()
         if not status_counts.empty:
             fig_status = px.pie(status_counts, values='count', names='Status', hole=0.5)
-            st.plotly_chart(fig_status, use_container_width=True)
+            st.plotly_chart(fig_status, width="stretch")
 
     with col_g2:
         st.markdown("**Balanço do Mês**")
@@ -166,24 +162,20 @@ with tab_dash:
             "Valor": [salario_liquido, total_faturas, max(saldo_mes, 0), valor_emergencia]
         })
         fig_bar = px.bar(df_balanco, x="Categoria", y="Valor", text_auto='.2f', color="Categoria")
-        st.plotly_chart(fig_bar, use_container_width=True)
+        st.plotly_chart(fig_bar, width="stretch")
 
-# --- TAB 2: CONTAS E EXTRATOS SUSPENSOS ---
+# --- TAB 2: CONTAS ---
 with tab_contas:
     st.subheader(f"💳 Tabela de Faturas - {mes_selecionado}")
     
     def salvar_alteracoes_tabela():
-        key = f"editor_v6_{mes_selecionado}"
+        key = f"editor_v7_{mes_selecionado}"
         if key in st.session_state:
             mudancas = st.session_state[key]
             for idx_str, cols in mudancas.get("edited_rows", {}).items():
                 idx = int(idx_str)
                 for col_name, val in cols.items():
                     st.session_state.historico_meses[mes_selecionado]["contas"][idx][col_name] = val
-            for row_add in mudancas.get("added_rows", []):
-                nova_conta = {"Conta": "NOVA CONTA", "Fatura": 0.0, "Valor Pago": 0.0, "Status": "PENDENTE", "Data": "XX/XX/XXXX", "Extrato": ""}
-                nova_conta.update(row_add)
-                st.session_state.historico_meses[mes_selecionado]["contas"].append(nova_conta)
 
     df_editor = pd.DataFrame(st.session_state.historico_meses[mes_selecionado]["contas"])
     
@@ -198,34 +190,14 @@ with tab_contas:
             "Data": st.column_config.TextColumn("Vencimento / Data"),
             "Extrato": None
         },
-        use_container_width=True,
-        key=f"editor_v6_{mes_selecionado}",
+        width="stretch",
+        key=f"editor_v7_{mes_selecionado}",
         on_change=salvar_alteracoes_tabela
     )
 
     st.markdown(f"**Total Mês Faturado:** `R$ {edited_df['Fatura'].sum():,.2f}` | **Total Efectivamente Pago:** `R$ {edited_df['Valor Pago'].sum():,.2f}`")
 
-    st.divider()
-
-    st.subheader("🔍 Discriminação & Extrato Detalhado da Conta")
-    st.caption("Selecione uma conta abaixo para visualizar ou preencher manualmente o extrato de compras e parcelas:")
-
-    contas_lista = [c["Conta"] for c in st.session_state.historico_meses[mes_selecionado]["contas"]]
-    if contas_lista:
-        conta_escolhida = st.selectbox("Escolha a Conta para ver/editar o extrato:", contas_lista)
-
-        for item in st.session_state.historico_meses[mes_selecionado]["contas"]:
-            if item["Conta"] == conta_escolhida:
-                with st.expander(f"📄 Extrato Suspenso: {conta_escolhida}", expanded=True):
-                    novo_extrato = st.text_area(
-                        "Discriminação dos Gastos / Parcelas (Edição Manual):",
-                        value=item.get("Extrato", ""),
-                        height=150,
-                        key=f"txt_{conta_escolhida}_{mes_selecionado}"
-                    )
-                    item["Extrato"] = novo_extrato
-
-# --- TAB 3: REMUNERAÇÕES & EMERGÊNCIA ---
+# --- TAB 3: REMUNERAÇÕES ---
 with tab_rem:
     st.subheader(f"💵 Folha de Pagamento & Emergência - {mes_selecionado}")
     col_g, col_d = st.columns(2)
@@ -274,7 +246,7 @@ with tab_tickets:
         tk["gas_c"] = st.number_input("Gasolina Carro", value=float(tk["gas_c"]), key=f"gc_{mes_selecionado}")
         st.metric("Saldo Restante (Mobilidade)", f"R$ {tk_mob_saldo:,.2f}")
 
-# --- TAB 5: ANÁLISE COMPARATIVA ---
+# --- TAB 5: COMPARAÇÃO ---
 with tab_analytics:
     st.subheader("📊 Comparativo Histórico entre Meses")
     
@@ -293,4 +265,4 @@ with tab_analytics:
     
     df_hist = pd.DataFrame(resumo_historico)
     fig_comp = px.bar(df_hist, x="Mês", y=["Salário Líquido", "Total Faturas", "Emergência"], barmode="group")
-    st.plotly_chart(fig_comp, use_container_width=True)
+    st.plotly_chart(fig_comp, width="stretch")
