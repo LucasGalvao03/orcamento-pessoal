@@ -191,15 +191,26 @@ with tab_contas:
         key = f"editor_json_{mes_selecionado}"
         if key in st.session_state:
             mudancas = st.session_state[key]
+            contas_atuais = st.session_state.historico_meses[mes_selecionado]["contas"]
+            
+            # 1. Trata remoções de linhas (deleted_rows) do maior para o menor índice
+            indices_para_deletar = sorted(mudancas.get("deleted_rows", []), reverse=True)
+            for idx in indices_para_deletar:
+                if 0 <= idx < len(contas_atuais):
+                    contas_atuais.pop(idx)
+
+            # 2. Trata edições de células (edited_rows)
             for idx_str, cols in mudancas.get("edited_rows", {}).items():
                 idx = int(idx_str)
-                for col_name, val in cols.items():
-                    st.session_state.historico_meses[mes_selecionado]["contas"][idx][col_name] = val
+                if 0 <= idx < len(contas_atuais):
+                    for col_name, val in cols.items():
+                        contas_atuais[idx][col_name] = val
             
+            # 3. Trata novas linhas (added_rows)
             for row_add in mudancas.get("added_rows", []):
                 nova_conta = {"Conta": "NOVA CONTA", "Fatura": 0.0, "Valor Pago": 0.0, "Status": "PENDENTE", "Data": "XX/XX/XXXX", "Extrato": ""}
                 nova_conta.update(row_add)
-                st.session_state.historico_meses[mes_selecionado]["contas"].append(nova_conta)
+                contas_atuais.append(nova_conta)
                 
             guardar_dados_json()
 
