@@ -1,33 +1,41 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from streamlit_gsheets import GSheetsConnection
 
 # Configuração da página
 st.set_page_config(page_title="Orçamento & Finanças - Lucas Galvão", page_icon="💎", layout="wide")
 
 st.title("💎 Gestão Financeira Inteligente - Lucas Galvão")
+st.caption("Conectado ao Google Sheets (ORÇAMENTO_MES_LUCAS)")
 
-# --- BANCO DE DADOS DE MESES (INICIALIZAÇÃO) ---
+# --- CONEXÃO COM O GOOGLE SHEETS ---
+try:
+    conn = st.connection("gsheets", type=GSheetsConnection)
+except Exception as e:
+    st.error("Erro ao conectar com o Google Sheets. Verifique a chave 'connections.gsheets' nas Secrets do Streamlit.")
+
+# --- CARREGAR DADOS DA PLANILHA ---
+@st.cache_data(ttl=5)
+def carregar_dados_sheets():
+    try:
+        df = conn.read(ttl=5)
+        return df
+    except Exception:
+        return pd.DataFrame()
+
+# Estrutura local em sessão sincronizada
 if 'historico_meses' not in st.session_state:
     st.session_state.historico_meses = {
         "Junho / 2026": {
             "contas": [
                 {"Conta": "BANCO DO BRASIL (CARD)", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": "Sem compras no mês"},
-                {"Conta": "BANCO DO BRASIL (CS)", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": ""},
                 {"Conta": "ITAU (CARD)", "Fatura": 149.67, "Valor Pago": 149.67, "Status": "PAGO", "Data": "30/06/2026", "Extrato": "• Tênis Nike: R$ 99,67 (2/5)\n• Farmácia: R$ 50,00 (1/1)"},
-                {"Conta": "ITAU (CS)", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": ""},
-                {"Conta": "SANTANDER (CARD)", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": ""},
-                {"Conta": "SANTANDER (CS)", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": ""},
-                {"Conta": "NUBANK (CARD)", "Fatura": 873.03, "Valor Pago": 873.03, "Status": "PAGO", "Data": "30/06/2026", "Extrato": "• Mercado Livre: R$ 350,00 (3/10)\n• Roupas: R$ 200,00 (1/2)\n• Assinaturas: R$ 323,03"},
-                {"Conta": "NUBANK (CS)", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": ""},
-                {"Conta": "INVESTIMENTO", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": "Aporte de reserva"},
-                {"Conta": "HONDA CONSORCIO", "Fatura": 659.68, "Valor Pago": 659.68, "Status": "PAGO", "Data": "15/06/2026", "Extrato": "• Parcela Consórcio Moto (22/60)"},
-                {"Conta": "99 PAY (CS)", "Fatura": 955.35, "Valor Pago": 955.35, "Status": "PAGO", "Data": "15/06/2026", "Extrato": "• Pagamento de boletos e transferências"},
-                {"Conta": "FACULDADE", "Fatura": 201.83, "Valor Pago": 201.83, "Status": "PAGO", "Data": "15/06/2026", "Extrato": "• Mensalidade Curso (4/12)"},
-                {"Conta": "RASTREADOR", "Fatura": 104.90, "Valor Pago": 104.90, "Status": "PAGO", "Data": "22/06/2026", "Extrato": "• Mensalidade Rastreamento Moto"},
-                {"Conta": "FINANCIAMENTO CAIXA", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": ""},
-                {"Conta": "EMPRESTIMO ITAU", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": ""},
-                {"Conta": "FINANCIAMENTO IMOBILIARIA", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": ""},
+                {"Conta": "NUBANK (CARD)", "Fatura": 873.03, "Valor Pago": 873.03, "Status": "PAGO", "Data": "30/06/2026", "Extrato": "• Mercado Livre: R$ 350,00 (3/10)"},
+                {"Conta": "HONDA CONSORCIO", "Fatura": 659.68, "Valor Pago": 659.68, "Status": "PAGO", "Data": "15/06/2026", "Extrato": "• Consórcio Moto (22/60)"},
+                {"Conta": "99 PAY (CS)", "Fatura": 955.35, "Valor Pago": 955.35, "Status": "PAGO", "Data": "15/06/2026", "Extrato": "• Transferências"},
+                {"Conta": "FACULDADE", "Fatura": 201.83, "Valor Pago": 201.83, "Status": "PAGO", "Data": "15/06/2026", "Extrato": "• Mensalidade (4/12)"},
+                {"Conta": "RASTREADOR", "Fatura": 104.90, "Valor Pago": 104.90, "Status": "PAGO", "Data": "22/06/2026", "Extrato": "• Rastreamento Moto"},
             ],
             "rem": {"q1": 1000.0, "q2": 1500.0, "he": 403.86, "not": 137.73, "dsr_not": 27.55, "dsr_var": 80.77, "inss": 266.57, "ad": 1000.0, "emergencia": 0.00},
             "tk": {"sal_a_ant": 17.49, "sal_a_at": 955.0, "mateus": 855.0, "ideal": 117.49, "outros_a": 0.0,
@@ -38,9 +46,6 @@ if 'historico_meses' not in st.session_state:
                 {"Conta": "ITAU (CARD)", "Fatura": 180.66, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/07/2026", "Extrato": ""},
                 {"Conta": "NUBANK (CARD)", "Fatura": 1202.49, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/07/2026", "Extrato": ""},
                 {"Conta": "HONDA CONSORCIO", "Fatura": 659.68, "Valor Pago": 0.00, "Status": "PAGO", "Data": "15/07/2026", "Extrato": ""},
-                {"Conta": "99 PAY (CS)", "Fatura": 955.35, "Valor Pago": 0.00, "Status": "PAGO", "Data": "15/07/2026", "Extrato": ""},
-                {"Conta": "FACULDADE", "Fatura": 204.83, "Valor Pago": 0.00, "Status": "PAGO", "Data": "15/07/2026", "Extrato": ""},
-                {"Conta": "RASTREADOR", "Fatura": 104.90, "Valor Pago": 0.00, "Status": "PAGO", "Data": "15/07/2026", "Extrato": ""},
             ],
             "rem": {"q1": 1000.0, "q2": 4068.81, "he": 157.70, "not": 101.03, "dsr_not": 19.43, "dsr_var": 556.98, "inss": 1224.10, "ad": 1000.0, "emergencia": 1055.00},
             "tk": {"sal_a_ant": 0.0, "sal_a_at": 955.0, "mateus": 0.0, "ideal": 0.0, "outros_a": 0.0,
@@ -48,12 +53,11 @@ if 'historico_meses' not in st.session_state:
         },
         "Agosto / 2026": {
             "contas": [
-                {"Conta": "ITAU (CARD)", "Fatura": 438.00, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/08/2026", "Extrato": "• Compras de Agosto (2/3)"},
+                {"Conta": "ITAU (CARD)", "Fatura": 438.00, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/08/2026", "Extrato": "• Compras de Agosto"},
                 {"Conta": "NUBANK (CARD)", "Fatura": 1211.99, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/08/2026", "Extrato": "• Fatura do mês"},
                 {"Conta": "FACULDADE", "Fatura": 204.83, "Valor Pago": 0.00, "Status": "PAGO", "Data": "15/08/2026", "Extrato": "• Mensalidade (6/12)"},
-                {"Conta": "RASTREADOR", "Fatura": 104.90, "Valor Pago": 0.00, "Status": "PAGO", "Data": "15/08/2026", "Extrato": "• Mensalidade Fixa"},
-                {"Conta": "FINANCIAMENTO CAIXA", "Fatura": 450.00, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/08/2026", "Extrato": "• Parcela Habitação (1/360)"},
-                {"Conta": "EMPRESTIMO ITAU", "Fatura": 333.00, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/08/2026", "Extrato": "• Empréstimo Pessoal (1/24)"},
+                {"Conta": "FINANCIAMENTO CAIXA", "Fatura": 450.00, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/08/2026", "Extrato": "• Habitação (1/360)"},
+                {"Conta": "EMPRESTIMO ITAU", "Fatura": 333.00, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/08/2026", "Extrato": "• Empréstimo (1/24)"},
             ],
             "rem": {"q1": 1025.0, "q2": 1500.0, "he": 252.06, "not": 100.05, "dsr_not": 19.24, "dsr_var": 48.47, "inss": 246.46, "ad": 1025.0, "emergencia": 0.00},
             "tk": {"sal_a_ant": 0.0, "sal_a_at": 955.0, "mateus": 0.0, "ideal": 0.0, "outros_a": 0.0,
@@ -61,14 +65,11 @@ if 'historico_meses' not in st.session_state:
         },
         "Setembro / 2026": {
             "contas": [
-                {"Conta": "ITAU (CARD)", "Fatura": 438.56, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "XX/09/2026", "Extrato": "• Compras de Setembro (3/3)"},
+                {"Conta": "ITAU (CARD)", "Fatura": 438.56, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "XX/09/2026", "Extrato": "• Compras Setembro"},
                 {"Conta": "NUBANK (CARD)", "Fatura": 771.42, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "XX/09/2026", "Extrato": "• Fatura em aberto"},
-                {"Conta": "99 PAY (CS)", "Fatura": 266.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/09/2026", "Extrato": ""},
                 {"Conta": "FACULDADE", "Fatura": 204.83, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "XX/09/2026", "Extrato": "• Mensalidade (7/12)"},
-                {"Conta": "RASTREADOR", "Fatura": 104.90, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "XX/09/2026", "Extrato": "• Mensalidade Fixa"},
-                {"Conta": "FINANCIAMENTO CAIXA", "Fatura": 450.00, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "XX/09/2026", "Extrato": "• Parcela Habitação (2/360)"},
-                {"Conta": "EMPRESTIMO ITAU", "Fatura": 233.00, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "XX/09/2026", "Extrato": "• Empréstimo Pessoal (2/24)"},
-                {"Conta": "FINANCIAMENTO IMOBILIARIA", "Fatura": 270.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/09/2026", "Extrato": "• Parcela Imobiliária (1/12)"},
+                {"Conta": "FINANCIAMENTO CAIXA", "Fatura": 450.00, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "XX/09/2026", "Extrato": "• Habitação (2/360)"},
+                {"Conta": "EMPRESTIMO ITAU", "Fatura": 233.00, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "XX/09/2026", "Extrato": "• Empréstimo (2/24)"},
             ],
             "rem": {"q1": 1025.0, "q2": 1500.0, "he": 0.0, "not": 0.0, "dsr_not": 0.0, "dsr_var": 0.0, "inss": 0.0, "ad": 1025.0, "emergencia": 0.00},
             "tk": {"sal_a_ant": 0.0, "sal_a_at": 955.0, "mateus": 0.0, "ideal": 0.0, "outros_a": 0.0,
@@ -76,7 +77,7 @@ if 'historico_meses' not in st.session_state:
         }
     }
 
-# --- SELEÇÃO DE MÊS NA SIDEBAR ---
+# --- SELEÇÃO DE MÊS ---
 st.sidebar.header("📅 Navegação do Orçamento")
 mes_selecionado = st.sidebar.selectbox("Escolha o Mês:", list(st.session_state.historico_meses.keys()))
 
@@ -90,6 +91,16 @@ if st.sidebar.button("➕ Criar Novo Mês"):
         }
         st.sidebar.success(f"Mês '{novo_mes_nome}' criado com sucesso!")
         st.rerun()
+
+st.sidebar.divider()
+if st.sidebar.button("☁️ Sincronizar / Salvar no Google Sheets", type="primary"):
+    try:
+        # Exporta o resumo das contas diretamente para a planilha online
+        df_export = pd.DataFrame(st.session_state.historico_meses[mes_selecionado]["contas"])
+        conn.update(data=df_export)
+        st.sidebar.success("Planilha Google Sheets atualizada com sucesso!")
+    except Exception as err:
+        st.sidebar.error(f"Erro ao salvar no Google Sheets: {err}")
 
 st.caption(f"Exibindo dados referentes a: **{mes_selecionado}**")
 dados_mes = st.session_state.historico_meses[mes_selecionado]
@@ -113,7 +124,7 @@ valor_emergencia = rem.get("emergencia", 0.00)
 saldo_mes = salario_liquido - (total_pago if total_pago > 0 else total_faturas)
 taxa_comprometimento = (total_faturas / salario_liquido * 100) if salario_liquido > 0 else 0
 
-# --- TAB 1: DASHBOARD PRINCIPAL ---
+# --- TAB 1: DASHBOARD ---
 with tab_dash:
     st.subheader(f"⚡ Resumo Executivo - {mes_selecionado}")
     
@@ -134,7 +145,7 @@ with tab_dash:
 
     st.markdown("### 🚦 Saúde Financeira do Mês")
     if taxa_comprometimento > 85:
-        st.error(f"⚠️ **Atenção:** Despesas comprometendo **{taxa_comprometimento:.1f}%** da renda do mês! Fundo de emergência disponível: R$ {valor_emergencia:,.2f}")
+        st.error(f"⚠️ **Atenção:** Despesas comprometendo **{taxa_comprometimento:.1f}%** da renda do mês! Reserva de emergência: R$ {valor_emergencia:,.2f}")
     elif taxa_comprometimento > 70:
         st.warning(f"⚡ **Aviso:** Comprometimento em **{taxa_comprometimento:.1f}%**.")
     else:
@@ -157,21 +168,18 @@ with tab_dash:
         fig_bar = px.bar(df_balanco, x="Categoria", y="Valor", text_auto='.2f', color="Categoria")
         st.plotly_chart(fig_bar, use_container_width=True)
 
-# --- TAB 2: CONTAS E EXTRATOS SUSPENSOS (COM SALVAMENTO INSTANTÂNEO) ---
+# --- TAB 2: CONTAS E EXTRATOS SUSPENSOS ---
 with tab_contas:
     st.subheader(f"💳 Tabela de Faturas - {mes_selecionado}")
     
-    # 1. Função de callback que força o salvamento imediato a cada alteração na tabela
     def salvar_alteracoes_tabela():
-        key = f"editor_v4_{mes_selecionado}"
+        key = f"editor_v6_{mes_selecionado}"
         if key in st.session_state:
             mudancas = st.session_state[key]
-            # Atualiza células editadas
             for idx_str, cols in mudancas.get("edited_rows", {}).items():
                 idx = int(idx_str)
                 for col_name, val in cols.items():
                     st.session_state.historico_meses[mes_selecionado]["contas"][idx][col_name] = val
-            # Trata linhas adicionadas
             for row_add in mudancas.get("added_rows", []):
                 nova_conta = {"Conta": "NOVA CONTA", "Fatura": 0.0, "Valor Pago": 0.0, "Status": "PENDENTE", "Data": "XX/XX/XXXX", "Extrato": ""}
                 nova_conta.update(row_add)
@@ -191,7 +199,7 @@ with tab_contas:
             "Extrato": None
         },
         use_container_width=True,
-        key=f"editor_v4_{mes_selecionado}",
+        key=f"editor_v6_{mes_selecionado}",
         on_change=salvar_alteracoes_tabela
     )
 
