@@ -19,6 +19,11 @@ def ligar_google_sheets():
         ]
         if "gcp_service_account" in st.secrets:
             creds_dict = dict(st.secrets["gcp_service_account"])
+            
+            # Tratamento essencial para corrigir formatação da private_key
+            if "private_key" in creds_dict:
+                creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+                
             credentials = Credentials.from_service_account_info(creds_dict, scopes=scope)
             client = gspread.authorize(credentials)
             
@@ -55,7 +60,6 @@ def guardar_dados_aba(nome_aba, df):
                 worksheet = doc_sheets.add_worksheet(title=nome_aba, rows="100", cols="20")
             
             worksheet.clear()
-            # Substitui valores NaN por vazios para evitar erros de serialização JSON
             df_limpo = df.fillna("")
             worksheet.update([df_limpo.columns.values.tolist()] + df_limpo.values.tolist())
             return True
@@ -66,21 +70,17 @@ def guardar_dados_aba(nome_aba, df):
 # --- NAVEGAÇÃO LATERAL ---
 st.sidebar.header("📅 Navegação do Orçamento")
 
-# Lista de abas da planilha
 lista_meses = ["JUNHO - 2026", "JULHO - 2026", "AGOSTO - 2026", "SETEMBRO - 2026"]
 mes_selecionado = st.sidebar.selectbox("Escolha o Mês / Aba:", lista_meses)
 
-# Inicialização do Session State isolado por mês
 if "dados_meses" not in st.session_state:
     st.session_state.dados_meses = {}
 
-# Carrega os dados do Google Sheets caso ainda não estejam em memória
 if mes_selecionado not in st.session_state.dados_meses:
     df_carregado = carregar_dados_aba(mes_selecionado)
     if not df_carregado.empty:
         st.session_state.dados_meses[mes_selecionado] = df_carregado
     else:
-        # Estrutura base de salvaguarda
         st.session_state.dados_meses[mes_selecionado] = pd.DataFrame([
             {"Conta": "ITAU (CARD)", "Fatura": 149.67, "Valor Pago": 149.67, "Status": "PAGO", "Data": "30/06/2026", "Extrato": "Tênis Nike"},
             {"Conta": "NUBANK (CARD)", "Fatura": 873.03, "Valor Pago": 873.03, "Status": "PAGO", "Data": "30/06/2026", "Extrato": "Mercado Livre"},
@@ -89,7 +89,6 @@ if mes_selecionado not in st.session_state.dados_meses:
 
 df_atual = st.session_state.dados_meses[mes_selecionado]
 
-# Botão de Sincronização Manual na Barra Lateral
 st.sidebar.divider()
 if st.sidebar.button("☁️ Recarregar do Google Sheets"):
     st.cache_resource.clear()
@@ -98,13 +97,11 @@ if st.sidebar.button("☁️ Recarregar do Google Sheets"):
 
 st.caption(f"A exibir dados da aba: **{mes_selecionado}**")
 
-# TABS DE VISUALIZAÇÃO E EDIÇÃO
 tab_dash, tab_contas = st.tabs(["📈 Dashboard & Saldo", "💳 Gestão de Contas & Tabela"])
 
 total_faturas = df_atual['Fatura'].sum() if 'Fatura' in df_atual.columns else 0.0
 total_pago = df_atual['Valor Pago'].sum() if 'Valor Pago' in df_atual.columns else 0.0
 
-# --- TAB 1: DASHBOARD ---
 with tab_dash:
     st.subheader(f"⚡ Resumo Executivo - {mes_selecionado}")
     c1, c2 = st.columns(2)
@@ -116,11 +113,9 @@ with tab_dash:
         fig_status = px.pie(df_atual, names='Status', values='Fatura', hole=0.4, title="Distribuição de Faturas por Status")
         st.plotly_chart(fig_status, width="stretch")
 
-# --- TAB 2: EDITAR TABELA E GRAVAR ---
 with tab_contas:
     st.subheader(f"💳 Tabela Editável - {mes_selecionado}")
-    st.info("💡 Faça as edições necessárias na tabela abaixo. Quando terminar, clique no botão **'💾 Gravar Alterações na Folha de Cálculo'** para salvar permanentemente na nuvem.")
-
+    
     df_editado = st.data_editor(
         df_atual,
         num_rows="dynamic",
@@ -136,16 +131,14 @@ with tab_contas:
         key=f"editor_final_{mes_selecionado}"
     )
 
-    # Atualiza a memória local
     st.session_state.dados_meses[mes_selecionado] = df_editado
 
     st.divider()
     
-    # Botão explícito de gravação para garantir que a API do Google processa o lote completo
     if st.button("💾 Gravar Alterações na Folha de Cálculo", type="primary", use_container_width=True):
         with st.spinner("A gravar dados no Google Sheets..."):
             sucesso = guardar_dados_aba(mes_selecionado, df_editado)
             if sucesso:
-                st.success(f"✅ Alterações da aba **'{mes_selecionado}'** salvas com sucesso na Google Sheets!")
+                st.success(f"✅ Alterações da aba **'{mes_selecionado}'** salvas com sucesso no Google Sheets!")
             else:
                 st.error("❌ Falha ao gravar na folha de cálculo. Verifique as credenciais nas Secrets.")
