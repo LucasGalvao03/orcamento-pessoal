@@ -1,0 +1,12 @@
+{
+    "JUNHO - 2026": {
+        "contas": [
+            {"Conta": "BANCO DO BRASIL (CARD)", "Fatura": 0.0, "Valor Pago": 0.0, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": "Sem compras no mês"},
+            {"Conta": "ITAU (CARD)", "Fatura": 149.67, "Valor Pago": 149.67, "Status": "PAGO", "Data": "30/06/2026", "Extrato": "• Tênis Nike: R$ 99,67 (2/5)\n• Farmácia: R$ 50,00 (1/1)"},
+            {"Conta": "NUBANK (CARD)", "Fatura": 873.03, "Valor Pago": 873.03, "Status": "PAGO", "Data": "30/06/2026", "Extrato": "• Mercado Livre: R$ 350,00 (3/10)"},
+            {"Conta": "HONDA CONSORCIO", "Fatura": 659.68, "Valor Pago": 659.68, "Status": "PAGO", "Data": "15/06/2026", "Extrato": "• Parcela Consórcio Moto (22/60)"}
+        ],
+        "rem": {"q1": 1000.0, "q2": 1500.0, "he": 403.86, "not": 137.73, "dsr_not": 27.55, "dsr_var": 80.77, "inss": 266.57, "ad": 1000.0, "emergencia": 0.0},
+        "tk": {"sal_a_ant": 17.49, "sal_a_at": 955.0, "mateus": 855.0, "ideal": 117.49, "outros_a": 0.0, "sal_m_ant": 8.95, "sal_m_at": 600.0, "uber": 160.47, "gas_m": 145.18, "gas_c": 300.0}
+    }
+}
