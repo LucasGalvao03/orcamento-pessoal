@@ -7,7 +7,7 @@ st.set_page_config(page_title="Orçamento & Finanças - Lucas Galvão", page_ico
 
 st.title("💎 Gestão Financeira Inteligente - Lucas Galvão")
 
-# --- BANCO DE DADOS DE MESES (INICIALIZAÇÃO COM DADOS DA TUA PLANILHA) ---
+# --- BANCO DE DADOS DE MESES (INICIALIZAÇÃO) ---
 if 'historico_meses' not in st.session_state:
     st.session_state.historico_meses = {
         "Junho / 2026": {
@@ -156,12 +156,15 @@ with tab_dash:
         fig_bar = px.bar(df_balanco, x="Categoria", y="Valor", text_auto='.2f', color="Categoria")
         st.plotly_chart(fig_bar, use_container_width=True)
 
-# --- TAB 2: CONTAS E EXTRATOS SUSPENSOS ---
+# --- TAB 2: CONTAS E EXTRATOS SUSPENSOS (CORRIGIDO BUG DO ENTER) ---
 with tab_contas:
     st.subheader(f"💳 Tabela de Faturas - {mes_selecionado}")
     
+    # Criamos um DataFrame estável direto do estado para edição
+    df_editor = pd.DataFrame(dados_mes["contas"])
+    
     edited_df = st.data_editor(
-        df_contas,
+        df_editor,
         num_rows="dynamic",
         column_config={
             "Conta": st.column_config.TextColumn("Conta / Banco"),
@@ -172,9 +175,11 @@ with tab_contas:
             "Extrato": None
         },
         use_container_width=True,
-        key=f"editor_limpo_{mes_selecionado}"
+        key=f"editor_v2_{mes_selecionado}"
     )
-    dados_mes["contas"] = edited_df.to_dict('records')
+    
+    # Atualiza instantaneamente a fonte da sessão para impedir reversão no Enter
+    st.session_state.historico_meses[mes_selecionado]["contas"] = edited_df.to_dict('records')
 
     st.markdown(f"**Total Mês Faturado:** `R$ {edited_df['Fatura'].sum():,.2f}` | **Total Efectivamente Pago:** `R$ {edited_df['Valor Pago'].sum():,.2f}`")
 
@@ -183,11 +188,11 @@ with tab_contas:
     st.subheader("🔍 Discriminação & Extrato Detalhado da Conta")
     st.caption("Selecione uma conta abaixo para visualizar ou preencher manualmente o extrato de compras e parcelas:")
 
-    contas_lista = [c["Conta"] for c in dados_mes["contas"]]
+    contas_lista = [c["Conta"] for c in st.session_state.historico_meses[mes_selecionado]["contas"]]
     if contas_lista:
         conta_escolhida = st.selectbox("Escolha a Conta para ver/editar o extrato:", contas_lista)
 
-        for item in dados_mes["contas"]:
+        for item in st.session_state.historico_meses[mes_selecionado]["contas"]:
             if item["Conta"] == conta_escolhida:
                 with st.expander(f"📄 Extrato Suspenso: {conta_escolhida}", expanded=True):
                     novo_extrato = st.text_area(
