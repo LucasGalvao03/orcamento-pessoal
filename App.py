@@ -7,7 +7,7 @@ st.set_page_config(page_title="Orçamento & Finanças - Lucas Galvão", page_ico
 
 st.title("💎 Gestão Financeira Inteligente - Lucas Galvão")
 
-# --- BANCO DE DADOS DE MESES (INICIALIZAÇÃO COM DADOS DA SUA PLANILHA) ---
+# --- BANCO DE DADOS DE MESES (INICIALIZAÇÃO) ---
 if 'historico_meses' not in st.session_state:
     st.session_state.historico_meses = {
         "Junho / 2026": {
@@ -157,14 +157,27 @@ with tab_dash:
         fig_bar = px.bar(df_balanco, x="Categoria", y="Valor", text_auto='.2f', color="Categoria")
         st.plotly_chart(fig_bar, use_container_width=True)
 
-# --- TAB 2: CONTAS E EXTRATOS SUSPENSOS (SISTEMA ANTI-ARRASTO FIX) ---
+# --- TAB 2: CONTAS E EXTRATOS SUSPENSOS (COM SALVAMENTO INSTANTÂNEO) ---
 with tab_contas:
     st.subheader(f"💳 Tabela de Faturas - {mes_selecionado}")
     
+    # 1. Função de callback que força o salvamento imediato a cada alteração na tabela
+    def salvar_alteracoes_tabela():
+        key = f"editor_v4_{mes_selecionado}"
+        if key in st.session_state:
+            mudancas = st.session_state[key]
+            # Atualiza células editadas
+            for idx_str, cols in mudancas.get("edited_rows", {}).items():
+                idx = int(idx_str)
+                for col_name, val in cols.items():
+                    st.session_state.historico_meses[mes_selecionado]["contas"][idx][col_name] = val
+            # Trata linhas adicionadas
+            for row_add in mudancas.get("added_rows", []):
+                nova_conta = {"Conta": "NOVA CONTA", "Fatura": 0.0, "Valor Pago": 0.0, "Status": "PENDENTE", "Data": "XX/XX/XXXX", "Extrato": ""}
+                nova_conta.update(row_add)
+                st.session_state.historico_meses[mes_selecionado]["contas"].append(nova_conta)
+
     df_editor = pd.DataFrame(st.session_state.historico_meses[mes_selecionado]["contas"])
-    
-    # Callback para capturar edições manuais e arrastos em massa
-    editor_key = f"editor_v3_{mes_selecionado}"
     
     edited_df = st.data_editor(
         df_editor,
@@ -178,15 +191,9 @@ with tab_contas:
             "Extrato": None
         },
         use_container_width=True,
-        key=editor_key
+        key=f"editor_v4_{mes_selecionado}",
+        on_change=salvar_alteracoes_tabela
     )
-    
-    # Processa alterações de arrasto / substituição de dados imediatamente
-    if editor_key in st.session_state and "edited_rows" in st.session_state[editor_key]:
-        changes = st.session_state[editor_key]["edited_rows"]
-        for row_idx, row_changes in changes.items():
-            for col_name, new_val in row_changes.items():
-                st.session_state.historico_meses[mes_selecionado]["contas"][int(row_idx)][col_name] = new_val
 
     st.markdown(f"**Total Mês Faturado:** `R$ {edited_df['Fatura'].sum():,.2f}` | **Total Efectivamente Pago:** `R$ {edited_df['Valor Pago'].sum():,.2f}`")
 
