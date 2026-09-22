@@ -3,7 +3,6 @@ import pandas as pd
 import plotly.express as px
 import json
 import os
-import io
 
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
@@ -13,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CSS CUSTOMIZADO PARA INTERFACE (MODO ESCURO E CLARO) ---
+# --- CSS CUSTOMIZADO (MODO ESCURO E CLARO) ---
 st.markdown("""
     <style>
     div[data-testid="stMetric"] {
@@ -36,7 +35,10 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- DADOS DE ESTRUTURA INICIAL DE BACKUP (CORRIGIDOS) ---
+# --- DEFINIÇÃO DO CAMINHO DO ARQUIVO ---
+ARQUIVO_DADOS_PADRAO = "dados_orcamento.json"
+
+# --- DADOS DE ESTRUTURA INICIAL DE BACKUP ---
 DADOS_INICIAIS = {
     "JUNHO - 2026": {
         "contas": [
@@ -256,16 +258,14 @@ with tab_contas:
 
     st.markdown(f"**Total Faturado:** `R$ {edited_df['Fatura'].sum():,.2f}` | **Total Pago:** `R$ {edited_df['Valor Pago'].sum():,.2f}`")
 
-    # DOWNLOAD DOS DADOS EM CSV/EXCEL
-    buffer = io.BytesIO()
-    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-        edited_df.to_excel(writer, sheet_name='Faturas', index=False)
+    # DOWNLOAD DOS DADOS EM CSV
+    csv_data = edited_df.to_csv(index=False).encode('utf-8')
     
     st.download_button(
-        label="📥 Exportar Faturas em Excel (.xlsx)",
-        data=buffer.getvalue(),
-        file_name=f"faturas_{mes_selecionado.replace(' ', '_')}.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        label="📥 Exportar Faturas em CSV",
+        data=csv_data,
+        file_name=f"faturas_{mes_selecionado.replace(' ', '_')}.csv",
+        mime="text/csv"
     )
 
     st.divider()
