@@ -3,60 +3,70 @@ import pandas as pd
 import plotly.express as px
 import json
 import os
+import io
 
-# Configuração da página
-st.set_page_config(page_title="Orçamento & Finanças - Lucas Galvão", page_icon="💎", layout="wide")
+# --- CONFIGURAÇÃO DA PÁGINA ---
+st.set_page_config(
+    page_title="Gestão Financeira Inteligente",
+    page_icon="💎",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-st.title("💎 Gestão Financeira Inteligente - Lucas Galvão")
+# --- CSS CUSTOMIZADO PARA INTERFACE ---
+st.markdown("""
+    <style>
+    .stMetric {
+        background-color: #f8f9fa;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+    }
+    div[data-testid="stSidebarUserContent"] {
+        padding-top: 1rem;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-ARQUIVO_DADOS = "dados_orcamento.json"
+ARQUIVO_DADOS_PADRAO = "dados_orcamento.json"
 
-# --- DADOS DE ESTRUTURA INICIAL DE BACKUP ---
+# --- DADOS DE ESTRUTURA INICIAL DE BACKUP (CORRIGIDOS) ---
 DADOS_INICIAIS = {
-    "SETEMBRO - 2026": {
+    "JUNHO - 2026": {
         "contas": [
-            {"Conta": "BANCO DO BRASIL (CARD)", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": "Sem compras no mês"},
-            {"Conta": "BANCO DO BRASIL (CS)", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": ""},
+            {"Conta": "BANCO DO BRASIL (CARD)", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "15/06/2026", "Extrato": "Sem compras no mês"},
             {"Conta": "ITAU (CARD)", "Fatura": 149.67, "Valor Pago": 149.67, "Status": "PAGO", "Data": "30/06/2026", "Extrato": "• Tênis Nike: R$ 99,67 (2/5)\n• Farmácia: R$ 50,00 (1/1)"},
-            {"Conta": "ITAU (CS)", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": ""},
-            {"Conta": "SANTANDER (CARD)", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": ""},
-            {"Conta": "SANTANDER (CS)", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": ""},
             {"Conta": "NUBANK (CARD)", "Fatura": 873.03, "Valor Pago": 873.03, "Status": "PAGO", "Data": "30/06/2026", "Extrato": "• Mercado Livre: R$ 350,00 (3/10)\n• Roupas: R$ 200,00 (1/2)\n• Assinaturas: R$ 323,03"},
-            {"Conta": "NUBANK (CS)", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": ""},
-            {"Conta": "INVESTIMENTO", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": "Aporte de reserva"},
             {"Conta": "HONDA CONSORCIO", "Fatura": 659.68, "Valor Pago": 659.68, "Status": "PAGO", "Data": "15/06/2026", "Extrato": "• Parcela Consórcio Moto (22/60)"},
             {"Conta": "99 PAY (CS)", "Fatura": 955.35, "Valor Pago": 955.35, "Status": "PAGO", "Data": "15/06/2026", "Extrato": "• Pagamento de boletos e transferências"},
             {"Conta": "FACULDADE", "Fatura": 201.83, "Valor Pago": 201.83, "Status": "PAGO", "Data": "15/06/2026", "Extrato": "• Mensalidade Curso (4/12)"},
-            {"Conta": "RASTREADOR", "Fatura": 104.90, "Valor Pago": 104.90, "Status": "PAGO", "Data": "22/06/2026", "Extrato": "• Mensalidade Rastreamento Moto"},
-            {"Conta": "FINANCIAMENTO CAIXA", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": ""},
-            {"Conta": "EMPRESTIMO ITAU", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": ""},
-            {"Conta": "FINANCIAMENTO IMOBILIARIA", "Fatura": 0.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/06/2026", "Extrato": ""},
+            {"Conta": "RASTREADOR", "Fatura": 104.90, "Valor Pago": 104.90, "Status": "PAGO", "Data": "22/06/2026", "Extrato": "• Mensalidade Rastreamento Moto"}
         ],
         "rem": {"q1": 1000.0, "q2": 1500.0, "he": 403.86, "not": 137.73, "dsr_not": 27.55, "dsr_var": 80.77, "inss": 266.57, "ad": 1000.0, "emergencia": 0.00},
         "tk": {"sal_a_ant": 17.49, "sal_a_at": 955.0, "mateus": 855.0, "ideal": 117.49, "outros_a": 0.0,
                "sal_m_ant": 8.95, "sal_m_at": 600.0, "uber": 160.47, "gas_m": 145.18, "gas_c": 300.0}
     },
-    "SETEMBRO - 2026": {
+    "JULHO - 2026": {
         "contas": [
-            {"Conta": "ITAU (CARD)", "Fatura": 180.66, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/07/2026", "Extrato": ""},
-            {"Conta": "NUBANK (CARD)", "Fatura": 1202.49, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/07/2026", "Extrato": ""},
-            {"Conta": "HONDA CONSORCIO", "Fatura": 659.68, "Valor Pago": 0.00, "Status": "PAGO", "Data": "15/07/2026", "Extrato": ""},
-            {"Conta": "99 PAY (CS)", "Fatura": 955.35, "Valor Pago": 0.00, "Status": "PAGO", "Data": "15/07/2026", "Extrato": ""},
-            {"Conta": "FACULDADE", "Fatura": 204.83, "Valor Pago": 0.00, "Status": "PAGO", "Data": "15/07/2026", "Extrato": ""},
-            {"Conta": "RASTREADOR", "Fatura": 104.90, "Valor Pago": 0.00, "Status": "PAGO", "Data": "15/07/2026", "Extrato": ""},
+            {"Conta": "ITAU (CARD)", "Fatura": 180.66, "Valor Pago": 180.66, "Status": "PAGO", "Data": "31/07/2026", "Extrato": ""},
+            {"Conta": "NUBANK (CARD)", "Fatura": 1202.49, "Valor Pago": 1202.49, "Status": "PAGO", "Data": "31/07/2026", "Extrato": ""},
+            {"Conta": "HONDA CONSORCIO", "Fatura": 659.68, "Valor Pago": 659.68, "Status": "PAGO", "Data": "15/07/2026", "Extrato": ""},
+            {"Conta": "99 PAY (CS)", "Fatura": 955.35, "Valor Pago": 955.35, "Status": "PAGO", "Data": "15/07/2026", "Extrato": ""},
+            {"Conta": "FACULDADE", "Fatura": 204.83, "Valor Pago": 204.83, "Status": "PAGO", "Data": "15/07/2026", "Extrato": ""},
+            {"Conta": "RASTREADOR", "Fatura": 104.90, "Valor Pago": 104.90, "Status": "PAGO", "Data": "15/07/2026", "Extrato": ""}
         ],
         "rem": {"q1": 1000.0, "q2": 4068.81, "he": 157.70, "not": 101.03, "dsr_not": 19.43, "dsr_var": 556.98, "inss": 1224.10, "ad": 1000.0, "emergencia": 1055.00},
         "tk": {"sal_a_ant": 0.0, "sal_a_at": 955.0, "mateus": 0.0, "ideal": 0.0, "outros_a": 0.0,
                "sal_m_ant": 0.0, "sal_m_at": 600.0, "uber": 0.0, "gas_m": 0.0, "gas_c": 0.0}
     },
-    "SETEMBRO - 2026": {
+    "AGOSTO - 2026": {
         "contas": [
-            {"Conta": "ITAU (CARD)", "Fatura": 438.00, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/08/2026", "Extrato": "• Compras de Agosto (2/3)"},
-            {"Conta": "NUBANK (CARD)", "Fatura": 1211.99, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/08/2026", "Extrato": "• Fatura do mês"},
-            {"Conta": "FACULDADE", "Fatura": 204.83, "Valor Pago": 0.00, "Status": "PAGO", "Data": "15/08/2026", "Extrato": "• Mensalidade (6/12)"},
-            {"Conta": "RASTREADOR", "Fatura": 104.90, "Valor Pago": 0.00, "Status": "PAGO", "Data": "15/08/2026", "Extrato": "• Mensalidade Fixa"},
-            {"Conta": "FINANCIAMENTO CAIXA", "Fatura": 450.00, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/08/2026", "Extrato": "• Parcela Habitação (1/360)"},
-            {"Conta": "EMPRESTIMO ITAU", "Fatura": 333.00, "Valor Pago": 0.00, "Status": "PAGO", "Data": "31/08/2026", "Extrato": "• Empréstimo Pessoal (1/24)"},
+            {"Conta": "ITAU (CARD)", "Fatura": 438.00, "Valor Pago": 438.00, "Status": "PAGO", "Data": "31/08/2026", "Extrato": "• Compras de Agosto (2/3)"},
+            {"Conta": "NUBANK (CARD)", "Fatura": 1211.99, "Valor Pago": 1211.99, "Status": "PAGO", "Data": "31/08/2026", "Extrato": "• Fatura do mês"},
+            {"Conta": "FACULDADE", "Fatura": 204.83, "Valor Pago": 204.83, "Status": "PAGO", "Data": "15/08/2026", "Extrato": "• Mensalidade (6/12)"},
+            {"Conta": "RASTREADOR", "Fatura": 104.90, "Valor Pago": 104.90, "Status": "PAGO", "Data": "15/08/2026", "Extrato": "• Mensalidade Fixa"},
+            {"Conta": "FINANCIAMENTO CAIXA", "Fatura": 450.00, "Valor Pago": 450.00, "Status": "PAGO", "Data": "31/08/2026", "Extrato": "• Parcela Habitação (1/360)"},
+            {"Conta": "EMPRESTIMO ITAU", "Fatura": 333.00, "Valor Pago": 333.00, "Status": "PAGO", "Data": "31/08/2026", "Extrato": "• Empréstimo Pessoal (1/24)"}
         ],
         "rem": {"q1": 1025.0, "q2": 1500.0, "he": 252.06, "not": 100.05, "dsr_not": 19.24, "dsr_var": 48.47, "inss": 246.46, "ad": 1025.0, "emergencia": 0.00},
         "tk": {"sal_a_ant": 0.0, "sal_a_at": 955.0, "mateus": 0.0, "ideal": 0.0, "outros_a": 0.0,
@@ -64,14 +74,14 @@ DADOS_INICIAIS = {
     },
     "SETEMBRO - 2026": {
         "contas": [
-            {"Conta": "ITAU (CARD)", "Fatura": 438.56, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "XX/09/2026", "Extrato": "• Compras de Setembro (3/3)"},
-            {"Conta": "NUBANK (CARD)", "Fatura": 771.42, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "XX/09/2026", "Extrato": "• Fatura em aberto"},
-            {"Conta": "99 PAY (CS)", "Fatura": 266.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/09/2026", "Extrato": ""},
-            {"Conta": "FACULDADE", "Fatura": 204.83, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "XX/09/2026", "Extrato": "• Mensalidade (7/12)"},
-            {"Conta": "RASTREADOR", "Fatura": 104.90, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "XX/09/2026", "Extrato": "• Mensalidade Fixa"},
-            {"Conta": "FINANCIAMENTO CAIXA", "Fatura": 450.00, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "XX/09/2026", "Extrato": "• Parcela Habitação (2/360)"},
-            {"Conta": "EMPRESTIMO ITAU", "Fatura": 233.00, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "XX/09/2026", "Extrato": "• Empréstimo Pessoal (2/24)"},
-            {"Conta": "FINANCIAMENTO IMOBILIARIA", "Fatura": 270.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "XX/09/2026", "Extrato": "• Parcela Imobiliária (1/12)"},
+            {"Conta": "ITAU (CARD)", "Fatura": 438.56, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "30/09/2026", "Extrato": "• Compras de Setembro (3/3)"},
+            {"Conta": "NUBANK (CARD)", "Fatura": 771.42, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "30/09/2026", "Extrato": "• Fatura em aberto"},
+            {"Conta": "99 PAY (CS)", "Fatura": 266.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "15/09/2026", "Extrato": ""},
+            {"Conta": "FACULDADE", "Fatura": 204.83, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "15/09/2026", "Extrato": "• Mensalidade (7/12)"},
+            {"Conta": "RASTREADOR", "Fatura": 104.90, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "15/09/2026", "Extrato": "• Mensalidade Fixa"},
+            {"Conta": "FINANCIAMENTO CAIXA", "Fatura": 450.00, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "30/09/2026", "Extrato": "• Parcela Habitação (2/360)"},
+            {"Conta": "EMPRESTIMO ITAU", "Fatura": 233.00, "Valor Pago": 0.00, "Status": "PENDENTE", "Data": "30/09/2026", "Extrato": "• Empréstimo Pessoal (2/24)"},
+            {"Conta": "FINANCIAMENTO IMOBILIARIA", "Fatura": 270.00, "Valor Pago": 0.00, "Status": "ISENTO", "Data": "30/09/2026", "Extrato": "• Parcela Imobiliária (1/12)"}
         ],
         "rem": {"q1": 1025.0, "q2": 1500.0, "he": 0.0, "not": 0.0, "dsr_not": 0.0, "dsr_var": 0.0, "inss": 0.0, "ad": 1025.0, "emergencia": 0.00},
         "tk": {"sal_a_ant": 0.0, "sal_a_at": 955.0, "mateus": 0.0, "ideal": 0.0, "outros_a": 0.0,
@@ -79,29 +89,35 @@ DADOS_INICIAIS = {
     }
 }
 
-# --- FUNÇÕES DE LEITURA E ESCRITA DO FICHEIRO JSON ---
+# --- FUNÇÕES DE LEITURA E ESCRITA ---
 def carregar_dados_json():
-    if os.path.exists(ARQUIVO_DADOS):
+    if os.path.exists(ARQUIVO_DADOS_PADRAO):
         try:
-            with open(ARQUIVO_DADOS, "r", encoding="utf-8") as f:
+            with open(ARQUIVO_DADOS_PADRAO, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception:
             return DADOS_INICIAIS
     return DADOS_INICIAIS
 
 def guardar_dados_json():
-    with open(ARQUIVO_DADOS, "w", encoding="utf-8") as f:
+    with open(ARQUIVO_DADOS_PADRAO, "w", encoding="utf-8") as f:
         json.dump(st.session_state.historico_meses, f, ensure_ascii=False, indent=4)
 
 if 'historico_meses' not in st.session_state:
     st.session_state.historico_meses = carregar_dados_json()
 
-# --- SELEÇÃO DE MÊS ---
+# --- HEADER DA APLICAÇÃO ---
+st.title("💎 Gestão Financeira Inteligente")
+st.markdown("##### Painel de Controle de Orçamento e Benefícios - Lucas Galvão")
+
+# --- BARRA LATERAL ---
 st.sidebar.header("📅 Navegação do Orçamento")
 mes_selecionado = st.sidebar.selectbox("Escolha o Mês:", list(st.session_state.historico_meses.keys()))
 
-novo_mes_nome = st.sidebar.text_input("Adicionar Novo Mês (Ex: OUTUBRO - 2026):")
-if st.sidebar.button("➕ Criar Novo Mês"):
+st.sidebar.divider()
+st.sidebar.subheader("➕ Novo Mês")
+novo_mes_nome = st.sidebar.text_input("Nome do Mês (Ex: OUTUBRO - 2026):")
+if st.sidebar.button("➕ Criar Novo Mês", type="primary"):
     if novo_mes_nome and novo_mes_nome not in st.session_state.historico_meses:
         st.session_state.historico_meses[novo_mes_nome] = {
             "contas": [c.copy() for c in st.session_state.historico_meses[mes_selecionado]["contas"]],
@@ -113,19 +129,18 @@ if st.sidebar.button("➕ Criar Novo Mês"):
         st.rerun()
 
 st.sidebar.divider()
-if st.sidebar.button("💾 Salvar Ficheiro de Dados Local", type="primary"):
+if st.sidebar.button("💾 Salvar Dados em Ficheiro Local"):
     guardar_dados_json()
-    st.sidebar.success("Dados salvos em ficheiro local!")
+    st.sidebar.success("Dados armazenados com sucesso!")
 
-st.caption(f"Exibindo dados referentes a: **{mes_selecionado}**")
 dados_mes = st.session_state.historico_meses[mes_selecionado]
 
 # TABS DE NAVEGAÇÃO
 tab_dash, tab_contas, tab_rem, tab_tickets, tab_analytics = st.tabs([
-    "📈 Dashboard & Saldo", "💳 Gestão de Contas & Extrato", "💵 Remunerações", "🍽️ Tickets & Mobilidade", "📊 Análise Comparativa"
+    "📈 Dashboard & Saldo", "💳 Gestão de Contas", "💵 Remunerações", "🍽️ Tickets & Mobilidade", "📊 Análise Comparativa"
 ])
 
-# --- DADOS COMPARTILHADOS ---
+# --- CÁLCULOS COMPARTILHADOS ---
 df_contas = pd.DataFrame(dados_mes["contas"])
 total_pago = df_contas['Valor Pago'].sum() if 'Valor Pago' in df_contas.columns else 0.0
 total_faturas = df_contas['Fatura'].sum() if 'Fatura' in df_contas.columns else 0.0
@@ -154,11 +169,14 @@ with tab_dash:
     tk_mob_saldo = (tk["sal_m_ant"] + tk["sal_m_at"]) - (tk["uber"] + tk["gas_m"] + tk["gas_c"])
     
     recursos_totais = salario_liquido + tk_alim_saldo + tk_mob_saldo + valor_emergencia
-    c5.metric("Recursos Totais (+ Emergência)", f"R$ {recursos_totais:,.2f}")
+    c5.metric("Recursos Totais", f"R$ {recursos_totais:,.2f}")
 
     st.divider()
 
-    st.markdown("### 🚦 Saúde Financeira do Mês")
+    st.markdown("### 🚦 Taxa de Comprometimento da Renda")
+    perc_normalizada = min(max(taxa_comprometimento / 100, 0.0), 1.0)
+    st.progress(perc_normalizada)
+
     if taxa_comprometimento > 85:
         st.error(f"⚠️ **Atenção:** Despesas comprometendo **{taxa_comprometimento:.1f}%** da renda do mês!")
     elif taxa_comprometimento > 70:
@@ -169,21 +187,22 @@ with tab_dash:
     col_g1, col_g2 = st.columns(2)
     with col_g1:
         st.markdown("**Status das Contas**")
-        status_counts = df_contas['Status'].value_counts().reset_index() if 'Status' in df_contas.columns else pd.DataFrame()
-        if not status_counts.empty:
-            fig_status = px.pie(status_counts, values='count', names='Status', hole=0.5)
-            st.plotly_chart(fig_status, width="stretch")
+        if 'Status' in df_contas.columns and not df_contas.empty:
+            status_counts = df_contas['Status'].value_counts().reset_index()
+            fig_status = px.pie(status_counts, values='count', names='Status', hole=0.5,
+                                color_discrete_sequence=px.colors.qualitative.Set2)
+            st.plotly_chart(fig_status, use_container_width=True)
 
     with col_g2:
-        st.markdown("**Balanço do Mês**")
+        st.markdown("**Balanço Geral do Mês**")
         df_balanco = pd.DataFrame({
             "Categoria": ["Salário Líquido", "Total Faturas", "Saldo Restante", "Reserva Emergência"],
             "Valor": [salario_liquido, total_faturas, max(saldo_mes, 0), valor_emergencia]
         })
         fig_bar = px.bar(df_balanco, x="Categoria", y="Valor", text_auto='.2f', color="Categoria")
-        st.plotly_chart(fig_bar, width="stretch")
+        st.plotly_chart(fig_bar, use_container_width=True)
 
-# --- TAB 2: CONTAS E SALVAMENTO AUTOMÁTICO EM JSON ---
+# --- TAB 2: CONTAS E SALVAMENTO ---
 with tab_contas:
     st.subheader(f"💳 Tabela de Faturas - {mes_selecionado}")
     
@@ -193,22 +212,19 @@ with tab_contas:
             mudancas = st.session_state[key]
             contas_atuais = st.session_state.historico_meses[mes_selecionado]["contas"]
             
-            # 1. Trata remoções de linhas (deleted_rows) do maior para o menor índice
             indices_para_deletar = sorted(mudancas.get("deleted_rows", []), reverse=True)
             for idx in indices_para_deletar:
                 if 0 <= idx < len(contas_atuais):
                     contas_atuais.pop(idx)
 
-            # 2. Trata edições de células (edited_rows)
             for idx_str, cols in mudancas.get("edited_rows", {}).items():
                 idx = int(idx_str)
                 if 0 <= idx < len(contas_atuais):
                     for col_name, val in cols.items():
                         contas_atuais[idx][col_name] = val
-            
-            # 3. Trata novas linhas (added_rows)
+
             for row_add in mudancas.get("added_rows", []):
-                nova_conta = {"Conta": "NOVA CONTA", "Fatura": 0.0, "Valor Pago": 0.0, "Status": "PENDENTE", "Data": "XX/XX/XXXX", "Extrato": ""}
+                nova_conta = {"Conta": "NOVA CONTA", "Fatura": 0.0, "Valor Pago": 0.0, "Status": "PENDENTE", "Data": "30/09/2026", "Extrato": ""}
                 nova_conta.update(row_add)
                 contas_atuais.append(nova_conta)
                 
@@ -227,25 +243,37 @@ with tab_contas:
             "Data": st.column_config.TextColumn("Vencimento / Data"),
             "Extrato": None
         },
-        width="stretch",
+        use_container_width=True,
         key=f"editor_json_{mes_selecionado}",
         on_change=salvar_alteracoes_tabela
     )
 
-    st.markdown(f"**Total Mês Faturado:** `R$ {edited_df['Fatura'].sum():,.2f}` | **Total Efectivamente Pago:** `R$ {edited_df['Valor Pago'].sum():,.2f}`")
+    st.markdown(f"**Total Faturado:** `R$ {edited_df['Fatura'].sum():,.2f}` | **Total Pago:** `R$ {edited_df['Valor Pago'].sum():,.2f}`")
+
+    # DOWNLOAD DOS DADOS EM CSV/EXCEL
+    buffer = io.BytesIO()
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        edited_df.to_excel(writer, sheet_name='Faturas', index=False)
+    
+    st.download_button(
+        label="📥 Exportar Faturas em Excel (.xlsx)",
+        data=buffer.getvalue(),
+        file_name=f"faturas_{mes_selecionado.replace(' ', '_')}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
     st.divider()
 
-    st.subheader("🔍 Discriminação & Extrato Detalhado da Conta")
+    st.subheader("🔍 Extrato Detalhado por Conta")
     contas_lista = [c["Conta"] for c in st.session_state.historico_meses[mes_selecionado]["contas"]]
     if contas_lista:
-        conta_escolhida = st.selectbox("Escolha a Conta para ver/editar o extrato:", contas_lista)
+        conta_escolhida = st.selectbox("Escolha a Conta:", contas_lista)
 
         for item in st.session_state.historico_meses[mes_selecionado]["contas"]:
             if item["Conta"] == conta_escolhida:
-                with st.expander(f"📄 Extrato Suspenso: {conta_escolhida}", expanded=True):
+                with st.expander(f"📄 Discriminação: {conta_escolhida}", expanded=True):
                     novo_extrato = st.text_area(
-                        "Discriminação dos Gastos / Parcelas (Edição Manual):",
+                        "Discriminação dos Gastos / Parcelas:",
                         value=item.get("Extrato", ""),
                         height=150,
                         key=f"txt_{conta_escolhida}_{mes_selecionado}"
@@ -254,9 +282,9 @@ with tab_contas:
                         item["Extrato"] = novo_extrato
                         guardar_dados_json()
 
-# --- TAB 3: REMUNERAÇÕES & EMERGÊNCIA ---
+# --- TAB 3: REMUNERAÇÕES ---
 with tab_rem:
-    st.subheader(f"💵 Folha de Pagamento & Emergência - {mes_selecionado}")
+    st.subheader(f"💵 Folha de Pagamento & Reserva - {mes_selecionado}")
     col_g, col_d = st.columns(2)
     
     with col_g:
@@ -270,14 +298,14 @@ with tab_rem:
         st.info(f"**Salário Bruto:** R$ {salario_bruto:,.2f}")
 
     with col_d:
-        st.markdown("#### 📤 Descontos & Reserva de Emergência")
+        st.markdown("#### 📤 Descontos & Reserva")
         rem["inss"] = st.number_input("INSS", value=float(rem["inss"]), key=f"inss_{mes_selecionado}")
         rem["ad"] = st.number_input("Adiantamento", value=float(rem["ad"]), key=f"ad_{mes_selecionado}")
         st.error(f"**Total Descontos:** R$ {descontos:,.2f}")
         st.success(f"**Salário Líquido:** R$ {salario_liquido:,.2f}")
         
         st.divider()
-        st.markdown("#### 🚨 Reserva de Emergência do Mês")
+        st.markdown("#### 🚨 Reserva de Emergência")
         rem["emergencia"] = st.number_input("Saldo de Emergência (R$)", value=float(rem.get("emergencia", 0.00)), key=f"emg_{mes_selecionado}")
 
     guardar_dados_json()
@@ -309,7 +337,7 @@ with tab_tickets:
 
 # --- TAB 5: COMPARAÇÃO HISTÓRICA ---
 with tab_analytics:
-    st.subheader("📊 Comparativo Histórico entre Meses")
+    st.subheader("📊 Comparativo Histórico")
     
     resumo_historico = []
     for m, d in st.session_state.historico_meses.items():
@@ -325,5 +353,6 @@ with tab_analytics:
         })
     
     df_hist = pd.DataFrame(resumo_historico)
-    fig_comp = px.bar(df_hist, x="Mês", y=["Salário Líquido", "Total Faturas", "Emergência"], barmode="group")
-    st.plotly_chart(fig_comp, width="stretch")
+    fig_comp = px.bar(df_hist, x="Mês", y=["Salário Líquido", "Total Faturas", "Emergência"], barmode="group",
+                      color_discrete_sequence=px.colors.qualitative.Pastel)
+    st.plotly_chart(fig_comp, use_container_width=True)
