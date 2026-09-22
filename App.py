@@ -13,22 +13,28 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CSS CUSTOMIZADO PARA INTERFACE ---
+# --- CSS CUSTOMIZADO PARA INTERFACE (MODO ESCURO E CLARO) ---
 st.markdown("""
     <style>
-    .stMetric {
-        background-color: #f8f9fa;
-        padding: 12px;
-        border-radius: 8px;
-        border: 1px solid #e9ecef;
+    div[data-testid="stMetric"] {
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 16px;
+        border-radius: 10px;
+        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    div[data-testid="stMetricLabel"] {
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+    div[data-testid="stMetricValue"] {
+        font-weight: 700;
     }
     div[data-testid="stSidebarUserContent"] {
         padding-top: 1rem;
     }
     </style>
-""", unsafe_allow_html=True)
-
-ARQUIVO_DADOS_PADRAO = "dados_orcamento.json"
+""", unsafe_unsafe_html=True if 'unsafe_unsafe_html' in locals() else True)
 
 # --- DADOS DE ESTRUTURA INICIAL DE BACKUP (CORRIGIDOS) ---
 DADOS_INICIAIS = {
