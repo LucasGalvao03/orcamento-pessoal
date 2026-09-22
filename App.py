@@ -34,7 +34,7 @@ st.markdown("""
         padding-top: 1rem;
     }
     </style>
-""", unsafe_unsafe_html=True if 'unsafe_unsafe_html' in locals() else True)
+""", unsafe_allow_html=True)
 
 # --- DADOS DE ESTRUTURA INICIAL DE BACKUP (CORRIGIDOS) ---
 DADOS_INICIAIS = {
